@@ -1,103 +1,99 @@
-import Image from "next/image";
+"use client"
+import {useEffect, useState} from "react"
+import MISSIONS from "@/data/missions";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    const [numberOfPlayers, setNumberOfPlayers] = useState(0)
+    const [missionLevel, setMissionLevel] = useState(0)
+    const [availableMissions, setAvailableMissions] = useState<{ [key: number]: Array<string> }>({
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: []
+    })
+    const [mission, setMission] = useState('')
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    const missionsByLevel: (level: number) => Array<string> = level =>
+        MISSIONS.filter((
+            data) =>
+            data[numberOfPlayers as (3 | 4 | 5)] === level,
+        ).map(item => item.mission)
+
+    useEffect(() => {
+        setAvailableMissions({
+            1: missionsByLevel(1),
+            2: missionsByLevel(2),
+            3: missionsByLevel(3),
+            4: missionsByLevel(4),
+            5: missionsByLevel(5),
+        })
+    }, [numberOfPlayers])
+
+    const generateMission = () => {
+        const missionsData = MISSIONS.filter((
+            data) =>
+            data[numberOfPlayers as (3 | 4 | 5)] === missionLevel,
+        )
+        if (missionsData.length === 0) {
+            setMission('No mission found for this dificulty level')
+            return
+        }
+        const index = Math.floor(Math.random() * missionsData.length)
+        const missionData = missionsData[index]
+        setMission(missionData.mission)
+    }
+
+    const missionLevelBlock = <>
+        <h1 className="text-4xl">Which mission level?</h1>
+        <div className="flex">
+            {[1, 2, 3, 4, 5].map(
+                (option, index) =>
+                    availableMissions[option].length > 0 ?
+                        <button key={index}
+                                className={`m-4 p-4 border-2 border-blue-400 cursor-pointer ${missionLevel === option ? 'bg-blue-300' : ''}`}
+                                onClick={() => {
+                                    if (missionLevel === option) {
+                                        return
+                                    }
+                                    setMission('')
+                                    setMissionLevel(option);
+                                }}>{option}</button> :
+                        null)}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    </>
+
+    const generatorButton =
+        <button className="m-4 p-4 border-2 border-blue-400 text-xl cursor-pointer"
+                onClick={generateMission}>Generate mission
+        </button>
+
+    const missionDisplay = <>
+        <p className="text-3xl font-bold">{mission}</p>
+        <button className="m-2 p-2 border-2 border-blue-400 text-m cursor-pointer" onClick={() => {
+            setMissionLevel(0)
+            setMission('')
+        }}>reset
+        </button>
+    </>
+
+
+    return <div
+        className="font-sans items-center justify-items-center flex flex-col min-h-screen p-8 pb-20 gap-16 sm:p-20">
+        <h1 className="text-4xl">How many players?</h1>
+        <div className="flex">
+            {[3, 4, 5].map((option, index) => <button key={index}
+                                                      className={`m-5 p-5 border-2 border-blue-400 cursor-pointer ${numberOfPlayers === option ? 'bg-blue-300' : ''}`}
+                                                      onClick={() => {
+                                                          if (numberOfPlayers === option) {
+                                                              return
+                                                          }
+                                                          setMission('')
+                                                          setNumberOfPlayers(option)
+                                                      }}>{option}</button>)}
+        </div>
+        {numberOfPlayers > 0 ? missionLevelBlock : null}
+        {numberOfPlayers > 0 && missionLevel > 0 && mission === '' ? generatorButton : null}
+        {mission ? missionDisplay : null}
+    </div>;
 }
